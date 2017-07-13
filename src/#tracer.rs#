@@ -1,0 +1,7 @@
+extern crate cgmath;
+
+use geom::Ray;
+
+pub trait Tracer {
+    trace_ray(ray: &Ray);
+};

@@ -1,0 +1,8 @@
+[package]
+name = "raytracer"
+version = "0.1.0"
+authors = ["Matthew Plant <maplant2@illinois.edu>"]
+
+[dependencies]
+image = "*"
+cgmath = "*"

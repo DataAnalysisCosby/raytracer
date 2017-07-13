@@ -1,0 +1,347 @@
+#[macro_use]
+extern crate cgmath;
+extern crate rand;
+
+mod bvh;
+mod world;
+mod geom;
+mod shade;
+mod light;
+mod camera;
+mod sampler;
+mod material;
+
+use std::io::{self, Write};
+use cgmath::{Point3, Vector3};
+
+use bvh::BVHTree;
+use world::World;
+use sampler::{SingleSample, MultiJittered};
+use geom::{Plane, Sphere, Triangle};
+use camera::{OrthogonalProj, PerspectiveProj};
+
+fn main() {
+    // Orthogonal projection
+    {
+        let mut world = World::new(OrthogonalProj::new(
+            400, 400, Point3::<f32>::new(0.0, 0.0, 100.0)),
+                                   Point3::<f32>::new(-1.0, 0.0, 1.0),
+                                   SingleSample::new());
+                world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, -10.0, 0.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, -10.0, -10.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, -10.0, -20.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, -10.0, -30.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, 10.0, 0.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, 10.0, -10.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, 10.0, -20.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, 10.0, -30.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Triangle{
+            b: Point3::<f32>::new(5.0, -5.0, 0.0),
+            a: Point3::<f32>::new(0.0, 0.0, 0.0),
+            c: Point3::<f32>::new(5.0, 5.0, 0.0),
+            color: [255, 0, 255],
+        });
+        world.add_object(Plane{
+            p: Point3::<f32>::new(5.0, 0.0, 0.0),
+            n: Vector3::<f32>::new(-1.0, 0.0, 0.0),
+            color: [0, 100, 0],
+        });
+        world.render_scene("orthogonal.png");
+    }
+    // Perspective projection
+    {
+        let mut world = World::new(PerspectiveProj::new(
+            400, 400, Point3::<f32>::new(0.0, 0.0, 10.0),
+            Point3::<f32>::new(0.0, 0.0, -5.0)),
+                                   Point3::<f32>::new(-1.0, 0.0, 1.0),
+                                   SingleSample::new());
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, -10.0, 0.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, -10.0, -10.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, -10.0, -20.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, -10.0, -30.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, 10.0, 0.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, 10.0, -10.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, 10.0, -20.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, 10.0, -30.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Triangle{
+            b: Point3::<f32>::new(5.0, -5.0, 0.0),
+            a: Point3::<f32>::new(0.0, 0.0, 0.0),
+            c: Point3::<f32>::new(5.0, 5.0, 0.0),
+            color: [255, 0, 255],
+        });
+        world.add_object(Plane{
+            p: Point3::<f32>::new(5.0, 0.0, 0.0),
+            n: Vector3::<f32>::new(-1.0, 0.0, 0.0),
+            color: [0, 100, 0],
+        });
+        world.render_scene("perspective2.png");
+    }
+       {
+        let mut world = World::new(PerspectiveProj::new(
+            400, 400, Point3::<f32>::new(0.0, 0.0, 10.0),
+            Point3::<f32>::new(0.0, 0.0, 10.5)),
+                                   Point3::<f32>::new(-1.0, 0.0, 1.0),
+                                   SingleSample::new());
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, -10.0, 0.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, -10.0, -10.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, -10.0, -20.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, -10.0, -30.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, 10.0, 0.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, 10.0, -10.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, 10.0, -20.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, 10.0, -30.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Triangle{
+            b: Point3::<f32>::new(5.0, -5.0, 0.0),
+            a: Point3::<f32>::new(0.0, 0.0, 0.0),
+            c: Point3::<f32>::new(5.0, 5.0, 0.0),
+            color: [255, 0, 255],
+        });
+        world.add_object(Plane{
+            p: Point3::<f32>::new(5.0, 0.0, 0.0),
+            n: Vector3::<f32>::new(-1.0, 0.0, 0.0),
+            color: [0, 100, 0],
+        });
+        world.render_scene("perspective1nojitter.png");
+       }
+       {
+        let mut world = World::new(PerspectiveProj::new(
+            400, 400, Point3::<f32>::new(0.0, 0.0, 10.0),
+            Point3::<f32>::new(0.0, 0.0, 10.5)),
+                                   Point3::<f32>::new(-1.0, 0.0, 1.0),
+                                   MultiJittered::new(5));
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, -10.0, 0.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, -10.0, -10.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, -10.0, -20.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, -10.0, -30.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, 10.0, 0.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, 10.0, -10.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, 10.0, -20.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Sphere{
+            c: Point3::<f32>::new(0.0, 10.0, -30.0),
+            r: 2.5,
+            color: [255, 0, 0],
+        });
+        world.add_object(Triangle{
+            b: Point3::<f32>::new(5.0, -5.0, 0.0),
+            a: Point3::<f32>::new(0.0, 0.0, 0.0),
+            c: Point3::<f32>::new(5.0, 5.0, 0.0),
+            color: [255, 0, 255],
+        });
+        world.add_object(Plane{
+            p: Point3::<f32>::new(5.0, 0.0, 0.0),
+            n: Vector3::<f32>::new(-1.0, 0.0, 0.0),
+            color: [0, 100, 0],
+        });
+           world.render_scene("jittered.png");
+           world.render_scene_accel(&bvh, "accel.png");
+       }
+
+    /*
+
+    {
+        print!("Starting BVH code\n");
+        let mut world = World::new(PerspectiveProj::new(
+            400, 400, Point3::<f32>::new(0.0, 0.0, 10.0),
+            Point3::<f32>::new(0.0, 0.0, 10.5)),
+                                   Point3::<f32>::new(-1.0, 0.0, 1.0),
+                                   SingleSample::new());
+        let spheres = vec![
+            Sphere{
+                c: Point3::<f32>::new(0.0, -10.0, 0.0),
+                r: 2.5,
+                color: [255, 0, 0],
+            },
+            Sphere{
+                c: Point3::<f32>::new(0.0, -10.0, -10.0),
+                r: 2.5,
+                color: [255, 0, 0],
+            },
+            Sphere{
+                c: Point3::<f32>::new(0.0, -10.0, -20.0),
+                r: 2.5,
+                color: [255, 0, 0],
+            },
+            Sphere{
+                c: Point3::<f32>::new(0.0, -10.0, -30.0),
+                r: 2.5,
+                color: [255, 0, 0],
+            },
+            Sphere{
+                c: Point3::<f32>::new(0.0, 10.0, 0.0),
+                r: 2.5,
+                color: [255, 0, 0],
+            },
+            Sphere{
+                c: Point3::<f32>::new(0.0, 10.0, -10.0),
+                r: 2.5,
+                color: [255, 0, 0],
+            },
+            Sphere{
+                c: Point3::<f32>::new(0.0, 10.0, -20.0),
+                r: 2.5,
+                color: [255, 0, 0],
+            },
+            Sphere{
+                c: Point3::<f32>::new(0.0, 10.0, -30.0),
+                r: 2.5,
+                color: [255, 0, 0],
+            },
+            ];
+        let triangles = vec![
+            Triangle{
+                b: Point3::<f32>::new(5.0, -5.0, 0.0),
+                a: Point3::<f32>::new(0.0, 0.0, 0.0),
+                c: Point3::<f32>::new(5.0, 5.0, 0.0),
+                color: [255, 0, 255],
+            },
+            ];
+        let planes = vec![
+            Plane{
+                p: Point3::<f32>::new(5.0, 0.0, 0.0),
+                n: Vector3::<f32>::new(-1.0, 0.0, 0.0),
+                color: [0, 100, 0],
+            },
+            ];
+        let mut bvh = BVHTree::new();
+        for i in 0..spheres.len() {
+            if let Some(s) = spheres.get(i) {
+                bvh.insert_object(s);
+            }
+        }
+        for i in 0..triangles.len() {
+            if let Some(s) = triangles.get(i) {
+                bvh.insert_object(s);
+            }
+        }
+        for i in 0..planes.len() {
+            if let Some(s) = planes.get(i) {
+                bvh.insert_object(s);
+            }
+        }
+        world.render_scene_accel(&bvh, "accel.png");
+    } */
+}
